@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
+import type { Post } from "../types";
 import "./TodoCard.css";
 
-
-
-const TodoCard = () => {
-
-    interface Post {
-        title: string,
-        description: string,
-        _id: string,
-        status: number
+    interface TodoCardProps {
+        todos: Post[]
     }
+
+const TodoCard = ({todos}: TodoCardProps) => {
 
     const [posts, setPosts] = useState<Post[] | []>([]);
     const [error, setError] = useState<string | null>(null);
@@ -47,6 +43,7 @@ const TodoCard = () => {
         }
     }
 
+
     return <div>
         <h2>Att göra:</h2>
 
@@ -60,7 +57,7 @@ const TodoCard = () => {
 
         <div className="PostGrid">
             {
-                posts.map((post) => {
+                todos.map((post) => {
 
                     return <section key={post._id}>
                         <h2>{post.title}</h2>
