@@ -1,102 +1,112 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Post } from "../types";
 import "./TodoCard.css";
 
+//Interface för TodoCard
 interface TodoCardProps {
-    todos: Post[]
+    todos: Post[];
+    onTodoDeleted?: (id: string) => void;
+    onTodoUpdated?: (updatedTodo: Post) => void;
 }
-
-interface TodoCardProps {
-    todos: Post[]
-    onTodoDeleted?: (id: string) => void
-    onTodoUpdated?: (updatedTodo: Post) => void
-}
-
 
 const TodoCard = ({ todos, onTodoDeleted, onTodoUpdated }: TodoCardProps) => {
-
-    const [posts, setPosts] = useState<Post[] | []>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editedStatus, setEditedStatus] = useState<number>(0);
 
     const statusText = ["Ej påbörjad", "Pågående", "Avklarad"];
 
-    useEffect(() => {
-        getPosts();
-    }, [])
+    // Starta redigering
+    const startEdit = (todo: Post) => {
+        setEditingId(todo._id);
+        setEditedStatus(todo.status);
+    };
 
-    const deleteTodo = async (id: string) => {
+    // Spara ändring (PUT)
+    const saveEdit = async (todo: Post) => {
         try {
+            const resp = await fetch(
+                `https://todo-api-render.onrender.com/api/todos/${todo._id}`,
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: todo.title,
+                        description: todo.description,
+                        status: editedStatus
+                    })
+                }
+            );
 
-            const resp = await fetch(`https://todo-api-render.onrender.com/api/todos/${id}`, {
-                method: "DELETE",
-            });
+            //Felmeddelande vid misslyckande
+            if (!resp.ok) throw new Error("Kunde inte uppdatera todo");
 
-            if (!resp.ok) throw new Error("Kunde inte a bort todo");
+            const updatedTodo = await resp.json();
+            onTodoUpdated?.(updatedTodo);
+            setEditingId(null);
 
         } catch (err) {
             console.error(err);
         }
+    };
 
-        //Säger till app.tsx att ta bort todon
-        if (onTodoDeleted) {
-            onTodoDeleted(id);
+    // Ta bort todo (DELETE)
+    const deleteTodo = async (id: string) => {
+        try {
+            const resp = await fetch(
+                `https://todo-api-render.onrender.com/api/todos/${id}`,
+                { method: "DELETE" }
+            );
+
+            //Felmeddelande vid misslyckande
+            if (!resp.ok) throw new Error("Kunde inte ta bort todo");
+
+            onTodoDeleted?.(id);
+
+        } catch (err) {
+            console.error(err);
         }
     };
 
-    const getPosts = async () => {
-        try {
-            setLoading(true);
+    return (
+        <div>
+            <h2>Att göra:</h2>
 
-            const resp = await fetch("https://todo-api-render.onrender.com/api/todos");
-
-            if (!resp.ok) {
-                throw Error;
-            } else {
-                const data = await resp.json();
-
-                setPosts(data);
-                setError(null);
-            }
-
-        } catch (error) {
-            console.log(error);
-            setError("Något gick fel vid hämtning av poster..")
-        } finally {
-
-            //Lägger in text att data laddas in
-            setLoading(false);
-        }
-    }
-
-
-    return <div>
-        <h2>Att göra:</h2>
-
-        {
-            error && <p className="info">{error}</p>
-        }
-
-        {
-            loading && <p className="info">Laddar in poster...</p>
-        }
-
-        <div className="PostGrid">
-            {
-                todos.map((post) => {
-
-                    return <section key={post._id}>
+            <div className="PostGrid">
+                {todos.map((post) => (
+                    <section key={post._id}>
                         <h2>{post.title}</h2>
                         <p>{post.description}</p>
-                        <p>{statusText[post.status]}</p>
 
-                        <button onClick={() => deleteTodo(post._id)}>Radera</button>
+                        {/* Visar dropdown och spara/avbryt när en todo redigeras */}
+                        {/* annars visas status samt redigera/radera-knappar */}
+                        {editingId === post._id ? (
+                            <select
+                                value={editedStatus}
+                                onChange={(e) => setEditedStatus(Number(e.target.value))}
+                            >
+                                <option value={0}>Ej påbörjad</option>
+                                <option value={1}>Pågående</option>
+                                <option value={2}>Avklarad</option>
+                            </select>
+                        ) : (
+                            <p>{statusText[post.status]}</p>
+                        )}
+                        {editingId === post._id ? (
+                            <>
+                                <button onClick={() => saveEdit(post)}>Spara</button>
+                                <button onClick={() => setEditingId(null)}>Avbryt</button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={() => startEdit(post)}>Redigera</button>
+                                <button onClick={() => deleteTodo(post._id)}>Radera</button>
+                            </>
+                        )}
                     </section>
-                })
-            }
+                ))}
+            </div>
         </div>
-    </div>
+    );
+};
 
-}
-
-export default TodoCard
+export default TodoCard;

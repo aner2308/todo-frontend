@@ -1,10 +1,12 @@
 import { useState } from "react";
 import "./TodoForm.css";
 
+//Callback som körs när ny todo läggs till
 interface TodoFormProps {
     onTodoAdded?: (todo: Post) => void;
 }
 
+//Interface för en todo
 interface Post {
     _id: string;
     title: string;
@@ -14,12 +16,14 @@ interface Post {
 
 const TodoForm = ({ onTodoAdded }: TodoFormProps) => {
 
+    //FormData som lagrar användarens input
     interface FormData {
         title: string
         description: string
         status: number
     }
 
+    //Interface för felmeddelanden
     interface ErrorsData {
         title?: string,
         description?: string
@@ -33,6 +37,7 @@ const TodoForm = ({ onTodoAdded }: TodoFormProps) => {
     //state för errors
     const [errors, setErrors] = useState<ErrorsData>({})
 
+    //Validerar formuläret innan det skickas
     const validateForm = ((data: FormData) => {
 
         //Tomt objekt för att lagra eventuella felmeddelanden
@@ -51,22 +56,24 @@ const TodoForm = ({ onTodoAdded }: TodoFormProps) => {
         return validationErrors;
     })
 
+    //Funktion som körs vid submit
     const submitForm = async (event: any) => {
         event?.preventDefault();
 
-        //Lägger in eventuella felmeddelanden i validationErrors
+        //Validerar formuläret med funktionen validateForm
         const validationErrors = validateForm(formData);
 
-        //Om felmeddelanden finns används setErrors
+        //Om felmeddelanden finns visas dom
         if (Object.keys(validationErrors).length > 0) {
 
             setErrors(validationErrors);
         } else {
 
-            //Tömmer objekt
+            //Tömmer errors
             setErrors({});
 
             try {
+                //POST till API med formulärdatan
                 const resp = await fetch("https://todo-api-render.onrender.com/api/todos", {
                     method: "POST",
                     headers: {
@@ -75,15 +82,18 @@ const TodoForm = ({ onTodoAdded }: TodoFormProps) => {
                     body: JSON.stringify(formData)
                 });
 
+                //Vid fel
                 if (!resp.ok) {
                     const errData = await resp.json();
                     alert("Fel: " + (errData.error || "Okänt fel"));
                     return;
                 }
 
+                //Hämtar nytt objekt från API respons
                 const newTodo = await resp.json();
                 console.log("Ny todo skapad:", newTodo);
 
+                //Uppdterar listan
                 if (onTodoAdded) {
                     onTodoAdded(newTodo);
                 }
