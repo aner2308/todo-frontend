@@ -54,7 +54,7 @@ function App() {
 
   return (
     <>
-      <h1>Test av applikation</h1>
+      <h1>Min lista</h1>
       {/* Laddar in komponenten TodoForm och skickar med möjlighet att POSTa */}
       <TodoForm
         onTodoAdded={(newTodo) =>
