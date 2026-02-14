@@ -4,6 +4,7 @@ body {
     background: linear-gradient(to bottom, #a7d8f7, #fdf6e3);
     color: #333;
     padding: 0px 5px;
+    min-height: 100vh;
 }
 
 h1 {
