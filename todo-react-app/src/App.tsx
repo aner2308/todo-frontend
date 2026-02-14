@@ -25,7 +25,8 @@ function App() {
     <>
       <h1>Test av applikation</h1>
       <TodoForm onTodoAdded={(newTodo) => setTodos(prev => [...prev, newTodo])} />
-      <TodoCard todos={todos}/>
+      <TodoCard todos={todos}
+        onTodoDeleted={(id) => setTodos(prev => prev.filter(todo => todo._id !== id))} />
     </>
   )
 }

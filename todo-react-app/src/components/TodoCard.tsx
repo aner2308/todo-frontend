@@ -2,11 +2,18 @@ import { useState, useEffect } from "react";
 import type { Post } from "../types";
 import "./TodoCard.css";
 
-    interface TodoCardProps {
-        todos: Post[]
-    }
+interface TodoCardProps {
+    todos: Post[]
+}
 
-const TodoCard = ({todos}: TodoCardProps) => {
+interface TodoCardProps {
+    todos: Post[]
+    onTodoDeleted?: (id: string) => void
+    onTodoUpdated?: (updatedTodo: Post) => void
+}
+
+
+const TodoCard = ({ todos, onTodoDeleted, onTodoUpdated }: TodoCardProps) => {
 
     const [posts, setPosts] = useState<Post[] | []>([]);
     const [error, setError] = useState<string | null>(null);
@@ -17,6 +24,25 @@ const TodoCard = ({todos}: TodoCardProps) => {
     useEffect(() => {
         getPosts();
     }, [])
+
+    const deleteTodo = async (id: string) => {
+        try {
+
+            const resp = await fetch(`https://todo-api-render.onrender.com/api/todos/${id}`, {
+                method: "DELETE",
+            });
+
+            if (!resp.ok) throw new Error("Kunde inte a bort todo");
+
+        } catch (err) {
+            console.error(err);
+        }
+
+        //Säger till app.tsx att ta bort todon
+        if (onTodoDeleted) {
+            onTodoDeleted(id);
+        }
+    };
 
     const getPosts = async () => {
         try {
@@ -63,6 +89,8 @@ const TodoCard = ({todos}: TodoCardProps) => {
                         <h2>{post.title}</h2>
                         <p>{post.description}</p>
                         <p>{statusText[post.status]}</p>
+
+                        <button onClick={() => deleteTodo(post._id)}>Radera</button>
                     </section>
                 })
             }
