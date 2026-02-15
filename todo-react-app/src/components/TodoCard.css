@@ -27,12 +27,21 @@ section:hover {
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-h2 {
+.statusHeading {
+    max-width: 1000px;
+    margin: 40px auto 10px;
+    color: #ff8c33;
+    font-size: 1.4rem;
+}
+
+h3 {
     color: #ff8c33;
     margin-top: 0;
+    text-align: center;
 }
 
 p {
+    text-align: center;
     margin: 5px 0;
 }
 

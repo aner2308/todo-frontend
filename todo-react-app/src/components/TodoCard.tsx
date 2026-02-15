@@ -67,51 +67,70 @@ const TodoCard = ({ todos, onTodoDeleted, onTodoUpdated }: TodoCardProps) => {
         }
     };
 
+    const notStarted = todos.filter(t => t.status === 0);
+    const inProgress = todos.filter(t => t.status === 1);
+    const completed = todos.filter(t => t.status === 2);
+
+    const renderGroup = (title: string, items: Post[]) => {
+        if (items.length === 0) return null;
+
+        return (
+            <>
+                <h2 className="statusHeading">{title}</h2>
+                <div className="PostGrid">
+                    {items.map((post) => (
+                        <section key={post._id}>
+                            <div className="cardContent">
+                                <h3>{post.title}</h3>
+                                <p>{post.description}</p>
+                            </div>
+                            {/* Visar dropdown och spara/avbryt när en todo redigeras */}
+                            {/* annars visas status samt redigera/radera-knappar */}
+                            <div className="statusTextContainer">
+                                {editingId === post._id ? (
+                                    <select
+                                        value={editedStatus}
+                                        onChange={(e) => setEditedStatus(Number(e.target.value))}
+                                    >
+                                        <option value={0}>Ej påbörjad</option>
+                                        <option value={1}>Pågående</option>
+                                        <option value={2}>Avklarad</option>
+                                    </select>
+                                ) : (
+                                    <p className="todoStatusText">
+                                        {statusText[post.status]}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="buttonContainer">
+                                {editingId === post._id ? (
+                                    <>
+                                        <button onClick={() => saveEdit(post)}>Spara</button>
+                                        <button onClick={() => setEditingId(null)}>Avbryt</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button onClick={() => startEdit(post)}> Ändra status </button>
+                                        <button onClick={() => deleteTodo(post._id)}> Radera </button>
+                                    </>
+                                )}
+                            </div>
+                        </section>
+                    ))}
+                </div>
+            </>
+        );
+    };
+
+
+
     return (
         <div>
-            <h2>Att göra:</h2>
-
-            <div className="PostGrid">
-                {todos.map((post) => (
-                    <section key={post._id}>
-                        <div className="cardContent">
-                            <h2>{post.title}</h2>
-                            <p>{post.description}</p>
-                        </div>
-                        {/* Visar dropdown och spara/avbryt när en todo redigeras */}
-                        {/* annars visas status samt redigera/radera-knappar */}
-                        <div className="statusTextContainer">
-                            {editingId === post._id ? (
-                                <select
-                                    value={editedStatus}
-                                    onChange={(e) => setEditedStatus(Number(e.target.value))}
-                                >
-                                    <option value={0}>Ej påbörjad</option>
-                                    <option value={1}>Pågående</option>
-                                    <option value={2}>Avklarad</option>
-                                </select>
-                            ) : (
-                                <p className="todoStatusText">{statusText[post.status]}</p>
-                            )}
-                        </div>
-
-
-                        <div className="buttonContainer">
-                            {editingId === post._id ? (
-                                <>
-                                    <button onClick={() => saveEdit(post)}>Spara</button>
-                                    <button onClick={() => setEditingId(null)}>Avbryt</button>
-                                </>
-                            ) : (
-                                <>
-                                    <button onClick={() => startEdit(post)}>Ändra status</button>
-                                    <button onClick={() => deleteTodo(post._id)}>Radera</button>
-                                </>
-                            )}
-                        </div>
-                    </section>
-                ))}
-            </div>
+            <h1>Att göra:</h1>
+            {renderGroup("Ej påbörjad", notStarted)}
+            {renderGroup("Pågående", inProgress)}
+            {renderGroup("Avklarad", completed)}
         </div>
     );
 };
